@@ -29,7 +29,7 @@ public class FileUploadController {
         return fileStorageService.upload(file);
     }
 
-    @GetMapping("/presigned/{fileMetadataId}")
+        @GetMapping("/presigned/{fileMetadataId}")
     public String generatePresignedUrl(@PathVariable UUID fileMetadataId) {
         return fileStorageService.generateDownloadUrl(fileMetadataId);
     }

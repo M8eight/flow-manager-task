@@ -72,7 +72,7 @@ app:
     call-attempt-timeout: 5
     folders:
       incoming: "uploads/"
-      converted: ""
+      converted: "converted/"
   outbox:
     lease-seconds: 60
     max-attempts: 5
