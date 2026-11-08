@@ -1,6 +1,6 @@
 package com.task.flow_manager.infrastructure.kafka.producer;
 
-import com.task.flow_manager.application.dto.FileConversionRequestedEvent;
+import com.task.flow_manager.application.dto.event.FileConversionRequestedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

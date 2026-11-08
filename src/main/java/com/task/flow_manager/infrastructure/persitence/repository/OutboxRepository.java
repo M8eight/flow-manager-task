@@ -52,12 +52,23 @@ public interface OutboxRepository extends JpaRepository<Outbox, UUID> {
         update outbox
         set status = 'FAILED',
             next_attempt_at = null,
-            last_error = :errorMessage,
-            next_attempt_at = null
+            last_error = :errorMessage
         where id = :id
             and status = 'PENDING'
     """, nativeQuery = true)
     void setFailed(@Param("id") UUID id,
                    @Param("errorMessage") String errorMessage);
+
+    @Modifying
+    @Query("""
+        delete from Outbox o
+        where o.id in (
+            select sub.id from Outbox sub
+            where sub.createdAt < :threshold
+            order by sub.createdAt asc
+            limit :batchSize
+        )
+    """)
+    int deleteByStatusAndCreatedAtBefore(Instant threshold, int batchSize);
 
 }

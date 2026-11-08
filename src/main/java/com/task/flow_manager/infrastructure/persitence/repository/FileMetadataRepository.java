@@ -1,5 +1,6 @@
 package com.task.flow_manager.infrastructure.persitence.repository;
 
+import com.task.flow_manager.application.enums.ErrorCode;
 import com.task.flow_manager.application.enums.FileStatus;
 import com.task.flow_manager.infrastructure.persitence.entity.FileMetadata;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +20,6 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
                 update FileMetadata fm
                 set fm.status = :status,
                     fm.resultBucket = :bucket,
-                    fm.resultKey = :objectKey,
                     fm.errorCode = :errorCode,
                     fm.errorMessage = :errorMessage,
                     fm.processedAt = :processedAt
@@ -29,8 +29,7 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
     int setResult(@Param("correlationId") UUID correlationId,
                   @Param("status") FileStatus status,
                   @Param("bucket") String bucket,
-                  @Param("objectKey") String objectKey,
-                  @Param("errorCode") String errorCode,
+                  @Param("errorCode") ErrorCode errorCode,
                   @Param("errorMessage") String errorMessage,
                   @Param("processedAt") Instant processedAt);
 
@@ -48,5 +47,17 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
                     @Param("failed") FileStatus failed,
                     @Param("threshold") Instant threshold,
                     @Param("processedAt") Instant processedAt);
+
+    @Modifying
+    @Query("""
+        delete from FileMetadata fm
+        where fm.fileId in (
+            select sub.fileId from FileMetadata sub
+            where sub.createdAt < :threshold
+            order by sub.createdAt asc
+            limit :batchSize
+        )
+    """)
+    int deleteByStatusAndCreatedAtBefore(Instant threshold, int batchSize);
 
 }

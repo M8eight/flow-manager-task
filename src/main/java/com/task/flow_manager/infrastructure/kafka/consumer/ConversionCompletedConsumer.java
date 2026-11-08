@@ -1,6 +1,6 @@
 package com.task.flow_manager.infrastructure.kafka.consumer;
 
-import com.task.flow_manager.application.dto.FileConversionCompletedEvent;
+import com.task.flow_manager.application.dto.event.FileConversionCompletedEvent;
 import com.task.flow_manager.application.service.FileMetadataService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +14,10 @@ public class ConversionCompletedConsumer {
 
     private final FileMetadataService fileMetadataService;
 
-    @KafkaListener(topics = "${app.kafka.topics.output}", groupId = "pdf-service")
+    @KafkaListener(topics = "${app.kafka.topics.output}", groupId = "flow-manager")
     public void onCompleted(FileConversionCompletedEvent event) {
         fileMetadataService.setCompleted(event);
-        log.info("SET FILE STATUS SUCCESS");
+        log.info("SET FILE STATUS {}", event);
     }
 
 }
