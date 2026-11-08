@@ -1,4 +1,4 @@
-package com.task.flow_manager.application.dto;
+package com.task.flow_manager.application.dto.event;
 
 import lombok.Builder;
 

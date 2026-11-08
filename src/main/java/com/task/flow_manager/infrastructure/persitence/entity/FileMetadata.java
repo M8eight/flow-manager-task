@@ -1,5 +1,6 @@
 package com.task.flow_manager.infrastructure.persitence.entity;
 
+import com.task.flow_manager.application.enums.ErrorCode;
 import com.task.flow_manager.application.enums.FileStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,9 +28,8 @@ public class FileMetadata {
 
     private String resultBucket;
 
-    private String resultKey;
-
-    private String errorCode;
+    @Enumerated(EnumType.STRING)
+    private ErrorCode errorCode;
 
     private String errorMessage;
 

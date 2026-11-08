@@ -4,7 +4,7 @@ create table file_metadata
     status        varchar(10) not null default 'PENDING'
         constraint chk_file_metadata_status check ( status in ('PENDING', 'COMPLETED', 'FAILED') ),
     result_bucket varchar(255),
-    result_key    varchar(255),
+--     result_key    varchar(255),
     error_code    varchar(50),
     error_message text,
     processed_at  timestamptz,

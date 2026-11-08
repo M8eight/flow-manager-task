@@ -1,5 +1,6 @@
 package com.task.flow_manager.infrastructure.persitence.repository;
 
+import com.task.flow_manager.application.enums.ErrorCode;
 import com.task.flow_manager.application.enums.FileStatus;
 import com.task.flow_manager.infrastructure.persitence.entity.FileMetadata;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -19,7 +21,6 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
                 update FileMetadata fm
                 set fm.status = :status,
                     fm.resultBucket = :bucket,
-                    fm.resultKey = :objectKey,
                     fm.errorCode = :errorCode,
                     fm.errorMessage = :errorMessage,
                     fm.processedAt = :processedAt
@@ -29,8 +30,7 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
     int setResult(@Param("correlationId") UUID correlationId,
                   @Param("status") FileStatus status,
                   @Param("bucket") String bucket,
-                  @Param("objectKey") String objectKey,
-                  @Param("errorCode") String errorCode,
+                  @Param("errorCode") ErrorCode errorCode,
                   @Param("errorMessage") String errorMessage,
                   @Param("processedAt") Instant processedAt);
 
@@ -49,4 +49,10 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
                     @Param("threshold") Instant threshold,
                     @Param("processedAt") Instant processedAt);
 
+//    @Query("""
+//        select fm
+//        from FileMetadata fm
+//        where fm.resultKey = :objectKey
+//    """)
+//    Optional<FileMetadata> findByResultKey(String objectKey);
 }

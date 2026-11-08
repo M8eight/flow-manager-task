@@ -1,7 +1,7 @@
 package com.task.flow_manager.infrastructure.scheduler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.task.flow_manager.application.dto.FileConversionRequestedEvent;
+import com.task.flow_manager.application.dto.event.FileConversionRequestedEvent;
 import com.task.flow_manager.application.service.OutboxService;
 import com.task.flow_manager.infrastructure.kafka.producer.ConversionRequestedPublisher;
 import com.task.flow_manager.infrastructure.persitence.entity.Outbox;

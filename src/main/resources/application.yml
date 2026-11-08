@@ -33,7 +33,7 @@ spring:
       max-poll-records: 2
       properties:
         spring.json.trusted.packages: "com.task.flow_manager.application.dto"
-        spring.json.value.default.type: com.task.flow_manager.application.dto.FileConversionCompletedEvent
+        spring.json.value.default.type: com.task.flow_manager.application.dto.event.FileConversionCompletedEvent
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
         spring.json.use.type.headers: false
         max.poll.interval.ms: 600000
@@ -70,6 +70,9 @@ app:
     bucket-name: file-converter-storage
     call-timeout: 15
     call-attempt-timeout: 5
+    folders:
+      incoming: "uploads/"
+      converted: ""
   outbox:
     lease-seconds: 60
     max-attempts: 5

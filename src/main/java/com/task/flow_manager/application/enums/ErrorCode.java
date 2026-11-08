@@ -1,0 +1,16 @@
+package com.task.flow_manager.application.enums;
+
+public enum ErrorCode {
+    TOO_MANY_FILES,
+    ARCHIVE_TOO_LARGE,
+    EMPTY_ARCHIVE,
+    CORRUPTED_ARCHIVE,
+    UNSUPPORTED_FILE_TYPE,
+
+    FILE_IS_EMPTY,
+    FILE_METADATA_NOT_FOUND,
+    FILE_NOT_READY_TO_DOWNLOAD,
+    TIMEOUT,
+    CONTENT_TOO_LARGE,
+    INTERNAL_ERROR
+}

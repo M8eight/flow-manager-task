@@ -1,33 +1,37 @@
 package com.task.flow_manager.web.controller;
 
-import com.task.flow_manager.application.service.FileUploadService;
+import com.task.flow_manager.application.dto.web.FileMetadataResponse;
+import com.task.flow_manager.application.service.FileMetadataService;
+import com.task.flow_manager.application.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
+
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/file")
+@RequestMapping("/api/v1/files")
 public class FileUploadController {
 
-    private final FileUploadService fileUploadService;
+    private final FileStorageService fileStorageService;
+    private final FileMetadataService fileMetadataService;
 
-    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> uploadFile(@RequestParam("file") MultipartFile file) {
-
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        fileUploadService.upload(file);
-
-        return ResponseEntity.ok().build();
+    @GetMapping("/{fileMetadataId}")
+    public FileMetadataResponse getById(@PathVariable UUID fileMetadataId) {
+        return fileMetadataService.getInfoById(fileMetadataId);
     }
 
+    @PostMapping(path = "/upload", consumes = MULTIPART_FORM_DATA_VALUE)
+    public UUID uploadFile(@RequestParam("file") MultipartFile file) {
+        return fileStorageService.upload(file);
+    }
+
+    @GetMapping("/presigned/{fileMetadataId}")
+    public String generatePresignedUrl(@PathVariable UUID fileMetadataId) {
+        return fileStorageService.generateDownloadUrl(fileMetadataId);
+    }
 
 }

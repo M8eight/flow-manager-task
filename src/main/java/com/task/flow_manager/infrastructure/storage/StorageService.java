@@ -23,10 +23,13 @@ public class StorageService {
     @Value("${app.s3.bucket-name}")
     private String bucketName;
 
+    @Value("${app.s3.folders.incoming}")
+    private String incomingFolder;
+
     public void saveFile(UUID fileId, InputStream inputStream, long contentLength) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(uploadKey(fileId))
+                .key(incomingFolder + fileId)
                 .contentLength(contentLength)
                 .build();
 
@@ -40,14 +43,10 @@ public class StorageService {
     public void deleteQuietly(UUID fileId) {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
-                .key(uploadKey(fileId))
+                .key(incomingFolder + fileId)
                 .build();
 
         s3Client.deleteObject(deleteObjectRequest);
-    }
-
-    public static String uploadKey(UUID fileId) {
-        return "uploads/" + fileId;
     }
 
 }
