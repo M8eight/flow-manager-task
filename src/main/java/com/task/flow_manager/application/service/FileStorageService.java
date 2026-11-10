@@ -35,8 +35,8 @@ public class FileStorageService {
     @Value("${app.s3.bucket-name}")
     private String bucketName;
 
-    @Value("${app.s3.folders.converted}")
-    private String convertedFolder;
+    @Value("${app.s3.folders.incoming}")
+    private String incomingFolder;
 
     public UUID upload(MultipartFile file) {
 
@@ -45,9 +45,10 @@ public class FileStorageService {
         }
 
         UUID fileId = UUID.randomUUID();
+        String objectKey = incomingFolder + fileId;
         try (InputStream inputStream = file.getInputStream()) {
-            storageService.saveFile(fileId, inputStream, file.getSize());
-            fileMetadataService.createAndPublish(fileId);
+            storageService.saveFile(objectKey, inputStream, file.getSize());
+            fileMetadataService.createAndPublish(fileId, objectKey);
         } catch (IOException e) {
             storageService.deleteQuietly(fileId);
             throw new FileStorageException("Ошибка чтения/записи в S3", INTERNAL_ERROR, e);
@@ -72,7 +73,7 @@ public class FileStorageService {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
-                .key(convertedFolder + fileMetadataId + ".pdf")
+                .key(fileMetadata.getResultObjectKey())
                 .build();
 
         GetObjectPresignRequest presignRequest =

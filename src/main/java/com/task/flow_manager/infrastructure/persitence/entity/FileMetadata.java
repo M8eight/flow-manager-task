@@ -28,6 +28,8 @@ public class FileMetadata {
 
     private String resultBucket;
 
+    private String resultObjectKey;
+
     @Enumerated(EnumType.STRING)
     private ErrorCode errorCode;
 

@@ -13,7 +13,6 @@ import com.task.flow_manager.infrastructure.persitence.entity.FileMetadata;
 import com.task.flow_manager.infrastructure.persitence.entity.Outbox;
 import com.task.flow_manager.infrastructure.persitence.repository.FileMetadataRepository;
 import com.task.flow_manager.infrastructure.persitence.repository.OutboxRepository;
-import com.task.flow_manager.infrastructure.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,10 +47,12 @@ public class FileMetadataService {
     }
 
     @Transactional
-    public void createAndPublish(UUID fileId) {
+    public void createAndPublish(UUID fileId, String objectKey) {
+
         FileMetadata fileMetadata = FileMetadata.builder()
                 .fileId(fileId)
                 .status(FileStatus.PENDING)
+                .resultObjectKey(objectKey)
                 .build();
 
         fileMetadataRepository.save(fileMetadata);
@@ -59,6 +60,7 @@ public class FileMetadataService {
         FileConversionRequestedEvent event = FileConversionRequestedEvent.builder()
                 .eventId(fileId)
                 .bucket(bucketName)
+                .objectKey(objectKey)
                 .build();
 
         Outbox outbox = Outbox.builder()
@@ -75,12 +77,14 @@ public class FileMetadataService {
     public void setCompleted(FileConversionCompletedEvent event) {
         boolean isFailed = event.errorCode() != null;
         String bucket = isFailed ? null : event.bucket();
+        String objectKey = isFailed ? null : event.objectKey();
         FileStatus status = isFailed ? FileStatus.FAILED : FileStatus.COMPLETED;
 
         int updated = fileMetadataRepository.setResult(
                 event.correlationId(),
                 status,
                 bucket,
+                objectKey,
                 ErrorCodeMapper.mapErrorCode(event.errorCode()),
                 event.errorMessage(),
                 Instant.now()

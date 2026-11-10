@@ -1,7 +1,6 @@
 package com.task.flow_manager.infrastructure.kafka;
 
 import com.task.flow_manager.application.enums.ErrorCode;
-import com.task.flow_manager.application.exception.BaseException;
 import com.task.flow_manager.application.exception.FileConversionException;
 
 public class ErrorCodeMapper {

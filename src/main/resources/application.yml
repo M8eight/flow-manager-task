@@ -72,7 +72,6 @@ app:
     call-attempt-timeout: 5
     folders:
       incoming: "uploads/"
-      converted: "converted/"
   outbox:
     lease-seconds: 60
     max-attempts: 5
@@ -80,3 +79,5 @@ app:
     topics:
       input: file.conversion.requested
       output: file.conversion.completed
+  cleanup:
+    delete-batch-limit: 5000

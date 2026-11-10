@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.unit.DataSize;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -26,10 +25,11 @@ public class StorageService {
     @Value("${app.s3.folders.incoming}")
     private String incomingFolder;
 
-    public void saveFile(UUID fileId, InputStream inputStream, long contentLength) {
+    public void saveFile(String objectKey, InputStream inputStream, long contentLength) {
+
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(incomingFolder + fileId)
+                .key(objectKey)
                 .contentLength(contentLength)
                 .build();
 
@@ -37,7 +37,7 @@ public class StorageService {
                 putObjectRequest, RequestBody.fromInputStream(inputStream, contentLength)
         );
 
-        log.info("Файл {} загружен", fileId);
+        log.info("Файл {} загружен", objectKey);
     }
 
     public void deleteQuietly(UUID fileId) {

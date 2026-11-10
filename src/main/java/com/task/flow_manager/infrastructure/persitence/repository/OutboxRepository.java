@@ -60,15 +60,33 @@ public interface OutboxRepository extends JpaRepository<Outbox, UUID> {
                    @Param("errorMessage") String errorMessage);
 
     @Modifying
-    @Query("""
-        delete from Outbox o
-        where o.id in (
-            select sub.id from Outbox sub
-            where sub.createdAt < :threshold
-            order by sub.createdAt asc
+    @Query(value = """
+        with batch_to_delete as (
+            select o.id
+            from outbox o
+            where o.created_at < :threshold
+                and o.status = 'PENDING'
+            order by o.created_at
             limit :batchSize
         )
-    """)
-    int deleteByStatusAndCreatedAtBefore(Instant threshold, int batchSize);
+        delete from outbox
+            where id in (select id from batch_to_delete)
+    """, nativeQuery = true)
+    int deletePending(@Param("threshold") Instant threshold, @Param("batchSize") int batchSize);
+
+    @Modifying
+    @Query(value = """
+        with batch_to_delete as (
+            select o.id
+            from outbox o
+            where o.created_at < :threshold
+                and o.status in ('SUCCESS', 'FAILED')
+            order by o.created_at
+            limit :batchSize
+        )
+        delete from outbox
+            where id in (select id from batch_to_delete)
+    """, nativeQuery = true)
+    int deleteFinal(@Param("threshold") Instant threshold, @Param("batchSize") int batchSize);
 
 }

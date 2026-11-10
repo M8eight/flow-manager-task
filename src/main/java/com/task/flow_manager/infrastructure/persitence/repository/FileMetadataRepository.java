@@ -20,6 +20,7 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
                 update FileMetadata fm
                 set fm.status = :status,
                     fm.resultBucket = :bucket,
+                    fm.resultObjectKey = :objectKey,
                     fm.errorCode = :errorCode,
                     fm.errorMessage = :errorMessage,
                     fm.processedAt = :processedAt
@@ -29,6 +30,7 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
     int setResult(@Param("correlationId") UUID correlationId,
                   @Param("status") FileStatus status,
                   @Param("bucket") String bucket,
+                  @Param("objectKey") String objectKey,
                   @Param("errorCode") ErrorCode errorCode,
                   @Param("errorMessage") String errorMessage,
                   @Param("processedAt") Instant processedAt);
@@ -49,15 +51,33 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
                     @Param("processedAt") Instant processedAt);
 
     @Modifying
-    @Query("""
-        delete from FileMetadata fm
-        where fm.fileId in (
-            select sub.fileId from FileMetadata sub
-            where sub.createdAt < :threshold
-            order by sub.createdAt asc
+    @Query(value = """
+        with batch_to_delete as (
+            select fm.file_id
+            from file_metadata fm
+            where fm.created_at < :threshold
+                and fm.status = 'PENDING'
+            order by fm.created_at
             limit :batchSize
         )
-    """)
-    int deleteByStatusAndCreatedAtBefore(Instant threshold, int batchSize);
+        delete from file_metadata
+            where file_id in (select file_id from batch_to_delete)
+    """, nativeQuery = true)
+    int deletePending(@Param("threshold") Instant threshold, @Param("batchSize") int batchSize);
+
+    @Modifying
+    @Query(value = """
+        with batch_to_delete as (
+            select fm.file_id
+            from file_metadata fm
+            where fm.created_at < :threshold
+                and fm.status in ('COMPLETED', 'FAILED')
+            order by fm.created_at
+            limit :batchSize
+        )
+        delete from file_metadata
+            where file_id in (select file_id from batch_to_delete)
+    """, nativeQuery = true)
+    int deleteFinal(@Param("threshold") Instant threshold, @Param("batchSize") int batchSize);
 
 }
