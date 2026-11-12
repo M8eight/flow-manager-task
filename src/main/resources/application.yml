@@ -1,0 +1,83 @@
+spring:
+  application:
+    name: flow-manager
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    schemas:
+      - public
+    callback-locations: classpath:db/migration
+  datasource:
+    url: ${PSQL_URL:jdbc:postgresql://localhost:5432}/${PSQL_FLOW_DB:flow_manager_db}
+    username: ${PSQL_FLOW_USER:flow_manager_user}
+    password: ${PSQL_FLOW_PASS:flow_manager_pass}
+    driver-class-name: org.postgresql.Driver
+
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 120MB
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: pdf-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      max-poll-records: 2
+      properties:
+        spring.json.trusted.packages: "com.task.flow_manager.application.dto"
+        spring.json.value.default.type: com.task.flow_manager.application.dto.event.FileConversionCompletedEvent
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        spring.json.use.type.headers: false
+        max.poll.interval.ms: 600000
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
+    listener:
+      ack-mode: record
+      concurrency: 3
+
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+server:
+  port: 8082
+
+app:
+  watchdog:
+    interval: PT1M
+    timeout: PT15M
+  s3:
+    endpoint: http://localhost:9000
+    access-key: user
+    secret-key: password
+    bucket-name: file-converter-storage
+    call-timeout: 15
+    call-attempt-timeout: 5
+    folders:
+      incoming: "uploads/"
+  outbox:
+    lease-seconds: 60
+    max-attempts: 5
+  kafka:
+    topics:
+      input: file.conversion.requested
+      output: file.conversion.completed
+  cleanup:
+    delete-batch-limit: 5000
