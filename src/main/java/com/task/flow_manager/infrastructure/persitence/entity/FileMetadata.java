@@ -26,6 +26,8 @@ public class FileMetadata {
     @Enumerated(EnumType.STRING)
     private FileStatus status;
 
+    private String userLogin;
+
     private String resultBucket;
 
     private String resultObjectKey;

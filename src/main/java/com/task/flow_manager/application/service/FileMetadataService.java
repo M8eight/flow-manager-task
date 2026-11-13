@@ -38,20 +38,18 @@ public class FileMetadataService {
     @Value("${app.s3.bucket-name}")
     String bucketName;
 
-    @Value("${app.s3.folders.incoming}")
-    private String incomingFolder;
-
-    public FileMetadata getById(UUID id) {
-        return fileMetadataRepository.findById(id)
+    public FileMetadata getById(String userLogin, UUID id) {
+        return fileMetadataRepository.findByLoginAndId(userLogin, id)
                 .orElseThrow(() -> new NotFoundException("FileMetadata not found", FILE_METADATA_NOT_FOUND));
     }
 
     @Transactional
-    public void createAndPublish(UUID fileId, String objectKey) {
+    public void createAndPublish(String userLogin, UUID fileId, String objectKey) {
 
         FileMetadata fileMetadata = FileMetadata.builder()
                 .fileId(fileId)
                 .status(FileStatus.PENDING)
+                .userLogin(userLogin)
                 .resultObjectKey(objectKey)
                 .build();
 
@@ -101,8 +99,9 @@ public class FileMetadataService {
                 Instant.now().minus(timeout), Instant.now());
     }
 
-    public FileMetadataResponse getInfoById(UUID fileMetadataId) {
-        FileMetadata fileMetadata = getById(fileMetadataId);
+    @Transactional(readOnly = true)
+    public FileMetadataResponse getInfoById(String userLogin, UUID fileMetadataId) {
+        FileMetadata fileMetadata = getById(userLogin, fileMetadataId);
         log.info(fileMetadata.getStatus().toString());
         return fileMetadataMapper.toDto(fileMetadata);
     }

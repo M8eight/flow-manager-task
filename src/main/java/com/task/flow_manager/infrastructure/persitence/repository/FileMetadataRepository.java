@@ -10,10 +10,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID> {
+
+    @Query("""
+        select fm
+        from FileMetadata fm
+        where fm.userLogin = :userLogin
+            and fm.fileId = :id
+    """)
+    Optional<FileMetadata> findByLoginAndId(@Param("userLogin") String userLogin,
+                                            @Param("id") UUID id);
 
     @Modifying
     @Query("""

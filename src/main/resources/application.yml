@@ -19,8 +19,28 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 120MB
+      max-file-size: 2GB
+      max-request-size: 2GB
+      file-size-threshold: 2MB
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          subscription-service:
+            error-decoder: com.task.flow_manager.infrastructure.client.SubscriptionErrorDecoder
+            connect-timeout: 2000
+            read-timeout: 3000
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis_pass
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -60,6 +80,10 @@ server:
   port: 8082
 
 app:
+  upload:
+    limits:
+      free: 100MB
+      paid: 2GB
   watchdog:
     interval: PT1M
     timeout: PT15M
@@ -79,5 +103,11 @@ app:
     topics:
       input: file.conversion.requested
       output: file.conversion.completed
+      subscription-input: subscription.changed
   cleanup:
     delete-batch-limit: 5000
+
+logging:
+  level:
+    org.apache.kafka: WARN
+    org.springframework.kafka: INFO
