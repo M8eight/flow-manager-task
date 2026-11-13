@@ -2,6 +2,7 @@ package com.task.flow_manager.application.exception;
 
 import com.task.flow_manager.application.enums.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,6 +79,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONTENT_TOO_LARGE);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ConstraintViolationException ex, HttpServletRequest req) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                ErrorCode.USER_LOGIN_BLANK,
+                req.getRequestURI()
+        );
 
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 
 }

@@ -3,6 +3,7 @@ create table file_metadata
     file_id           uuid primary key,
     status            varchar(10) not null default 'PENDING'
         constraint chk_file_metadata_status check ( status in ('PENDING', 'COMPLETED', 'FAILED') ),
+    user_login         varchar(255) not null,
     result_bucket     varchar(255),
     result_object_key text,
     error_code        varchar(50),

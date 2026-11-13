@@ -38,7 +38,7 @@ public class FileStorageService {
     @Value("${app.s3.folders.incoming}")
     private String incomingFolder;
 
-    public UUID upload(MultipartFile file) {
+    public UUID upload(String userLogin, MultipartFile file) {
 
         if (file.isEmpty()) {
             throw new BadRequestException("File is empty", FILE_IS_EMPTY);
@@ -48,7 +48,7 @@ public class FileStorageService {
         String objectKey = incomingFolder + fileId;
         try (InputStream inputStream = file.getInputStream()) {
             storageService.saveFile(objectKey, inputStream, file.getSize());
-            fileMetadataService.createAndPublish(fileId, objectKey);
+            fileMetadataService.createAndPublish(userLogin, fileId, objectKey);
         } catch (IOException e) {
             storageService.deleteQuietly(fileId);
             throw new FileStorageException("Ошибка чтения/записи в S3", INTERNAL_ERROR, e);
@@ -60,8 +60,8 @@ public class FileStorageService {
         return fileId;
     }
 
-    public String generateDownloadUrl(UUID fileMetadataId) {
-        FileMetadata fileMetadata = fileMetadataService.getById(fileMetadataId);
+    public String generateDownloadUrl(String userLogin, UUID fileMetadataId) {
+        FileMetadata fileMetadata = fileMetadataService.getById(userLogin, fileMetadataId);
         FileStatus status = fileMetadata.getStatus();
 
         switch (status) {
