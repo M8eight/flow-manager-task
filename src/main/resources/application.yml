@@ -76,6 +76,27 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+management:
+  server:
+    port: 9082
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  endpoint:
+    health:
+      show-details: never
+  tracing:
+    sampling:
+      probability: 0.2
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        http.client.requests: true
+    tags:
+      application: ${spring.application.name}
+
 server:
   port: 8082
 
