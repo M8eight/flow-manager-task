@@ -3,6 +3,7 @@ package com.task.flow_manager.application.service;
 import com.task.flow_manager.application.enums.SubscriptionStatus;
 import com.task.flow_manager.application.exception.BadRequestException;
 import com.task.flow_manager.infrastructure.config.properties.UploadLimitsProperties;
+import com.task.flow_manager.infrastructure.metrics.UploadMetricsRecorder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
@@ -21,6 +22,7 @@ public class FileUploadFacade {
     private final SubscriptionService subscriptionService;
     private final UploadLimitsProperties uploadLimitsProperties;
     private final FileStorageService fileStorageService;
+    private final UploadMetricsRecorder uploadMetricsRecorder;
 
     public UUID uploadFile(String userLogin, MultipartFile file) {
 
@@ -32,6 +34,7 @@ public class FileUploadFacade {
         DataSize maxAllowedSize = status == FREE ? uploadLimitsProperties.free() : uploadLimitsProperties.paid();
 
         if (file.getSize() > maxAllowedSize.toBytes()) {
+            uploadMetricsRecorder.recordLimitRejected(status);
             throw new MaxUploadSizeExceededException(file.getSize());
         }
 
