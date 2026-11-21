@@ -12,9 +12,9 @@ spring:
       - public
     callback-locations: classpath:db/migration
   datasource:
-    url: ${PSQL_URL:jdbc:postgresql://localhost:5432}/${PSQL_FLOW_DB:flow_manager_db}
-    username: ${PSQL_FLOW_USER:flow_manager_user}
-    password: ${PSQL_FLOW_PASS:flow_manager_pass}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432}/${DB_DB:flow_manager_db}
+    username: ${DB_USER:flow_manager_user}
+    password: ${DB_PASS:flow_manager_pass}
     driver-class-name: org.postgresql.Driver
 
   servlet:
@@ -34,16 +34,16 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: redis_pass
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis_pass}
   cache:
     type: redis
     redis:
       time-to-live: 10m
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_URL:localhost:9092}
     consumer:
       group-id: pdf-service
       auto-offset-reset: earliest
@@ -70,11 +70,10 @@ spring:
 
 eureka:
   instance:
-    hostname: localhost
-    prefer-ip-address: false
+    prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
 
 server:
   port: 8082
@@ -88,9 +87,9 @@ app:
     interval: PT1M
     timeout: PT15M
   s3:
-    endpoint: http://localhost:9000
-    access-key: user
-    secret-key: password
+    endpoint: ${S3_URL:http://localhost:9000}
+    access-key: ${S3_ACCESS_KEY:user}
+    secret-key: ${S3_SECRET_KEY:password}
     bucket-name: file-converter-storage
     call-timeout: 15
     call-attempt-timeout: 5
@@ -101,8 +100,8 @@ app:
     max-attempts: 5
   kafka:
     topics:
-      input: file.conversion.requested
-      output: file.conversion.completed
+      input: converter.requested
+      output: converter.completed
       subscription-input: subscription.changed
   cleanup:
     delete-batch-limit: 5000
