@@ -4,6 +4,7 @@ import com.task.flow_manager.application.enums.FileStatus;
 import com.task.flow_manager.application.exception.BadRequestException;
 import com.task.flow_manager.application.exception.ConflictException;
 import com.task.flow_manager.application.exception.FileStorageException;
+import com.task.flow_manager.infrastructure.metrics.UploadMetricsRecorder;
 import com.task.flow_manager.infrastructure.persitence.entity.FileMetadata;
 import com.task.flow_manager.infrastructure.storage.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class FileStorageService {
     private final StorageService storageService;
     private final FileMetadataService fileMetadataService;
     private final S3Presigner s3Presigner;
+    private final UploadMetricsRecorder uploadMetricsRecorder;
 
     @Value("${app.s3.bucket-name}")
     private String bucketName;
@@ -44,16 +46,28 @@ public class FileStorageService {
             throw new BadRequestException("File is empty", FILE_IS_EMPTY);
         }
 
+        long totalStart = System.currentTimeMillis();
+        String extension = extractExtension(file.getOriginalFilename());
+
         UUID fileId = UUID.randomUUID();
         String objectKey = incomingFolder + fileId;
         try (InputStream inputStream = file.getInputStream()) {
+            long s3Start = System.currentTimeMillis();
             storageService.saveFile(objectKey, inputStream, file.getSize());
+            long s3Duration = System.currentTimeMillis() - s3Start;
+
             fileMetadataService.createAndPublish(userLogin, fileId, objectKey);
+
+            long totalDuration = System.currentTimeMillis() - totalStart;
+            uploadMetricsRecorder.recordCompleted(extension, file.getSize(), s3Duration, totalDuration);
+
         } catch (IOException e) {
             storageService.deleteQuietly(fileId);
+            uploadMetricsRecorder.recordError("s3_io", extension);
             throw new FileStorageException("Ошибка чтения/записи в S3", INTERNAL_ERROR, e);
         } catch (Exception e) {
             storageService.deleteQuietly(fileId);
+            uploadMetricsRecorder.recordError("publish_or_other", extension);
             throw e;
         }
 
@@ -84,4 +98,10 @@ public class FileStorageService {
         return s3Presigner.presignGetObject(presignRequest)
                 .url().toString();
     }
+
+    private String extractExtension(String filename) {
+        if (filename == null || !filename.contains(".")) return "unknown";
+        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+    }
+
 }
