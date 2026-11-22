@@ -44,7 +44,7 @@ public class S3Config {
     @Bean
     public S3Presigner s3Presigner() {
         return S3Presigner.builder()
-                .endpointOverride(URI.create(s3Properties.endpoint()))
+                .endpointOverride(URI.create(s3Properties.publicEndpoint()))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(
                                 s3Properties.accessKey(),
